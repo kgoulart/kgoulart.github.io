@@ -1,5 +1,8 @@
 # Covid-19 selected counties and regions
+
+setwd("~/Google Drive (kimberly.goulart@gmail.com)/kgoulart.github.io")
 library(tidyverse)
+library(rmarkdown)
 
 data <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
 
@@ -22,7 +25,7 @@ regions <- regions %>%
 regions$state <- fct_recode(regions$state, Atlanta = "Georgia", Philadelphia = "Pennsylvania", Los_Angeles = "California")
 
 regions$state <- fct_recode(regions$state, DMV = "District of Columbia", DMV = "Maryland", DMV = "Virginia")
-                            
+
 # rename variable name from state to region
 names(regions) [3] <- "region"
 
@@ -73,38 +76,6 @@ regions <- regions %>%
   group_by(region) %>%
   mutate(rollave7.cases = (cases-lag(cases, n = 7))/7)
 
-# Per capita
-populations <- read_csv("populations.csv")
-regions <- regions %>%
-  left_join(populations, by = "region")
-
-regions$deaths_percap <- (regions$rollave7.deaths/regions$population)*100000
-
-regions$cases_percap <- (regions$rollave7.cases/regions$population)*100000
-
 write_csv(regions, "regions.csv")
 
-# Graphs
-library(plotly)
-
-ggplotly(ggplot(data =  regions, mapping = aes(x = date, y = rollave7.deaths, color = region)) + geom_smooth())
-
-ggplotly(ggplot(data =  regions, mapping = aes(x = date, y = rollave7.cases, color = region)) + geom_smooth())
-
-ggplotly(ggplot(data =  regions, mapping = aes(x = date, y = rollave7.deaths, color = region)) + geom_smooth(se=FALSE) + scale_y_log10() + scale_color_viridis(option = "B", discrete = TRUE))
-
-ggplot(data =  regions, mapping = aes(x = date, y = rollave7.deaths, color = region)) + geom_smooth(se=FALSE) + theme_minimal()+ scale_y_log10() + scale_color_viridis(option = "D", discrete = TRUE)
-
-ggplotly(ggplot(data =  regions, mapping = aes(x = date, y = rollave7.cases, color = region)) + geom_smooth(se=FALSE) + scale_y_log10())
-
-ggplot(data =  regions, mapping = aes(x = date, y = rollave7.deaths, color = region)) + geom_smooth(se=FALSE) + scale_y_log10()
-
-
-# Graphs per capita
-ggplotly(ggplot(data =  regions, mapping = aes(x = date, y = cases_percap, color = region)) + geom_line() + theme_minimal() + labs(x = "Date", y = "Cases per 100k/day"))
-
-
-savehistory(file="mylog.apr10.covid")
-
-
-
+render("index.Rmd")

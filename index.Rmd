@@ -10,6 +10,7 @@ output: html_document
 library(tidyverse)
 library(ggplot2)
 library(plotly)
+library(viridis)
 data <- read_csv("regions.csv")
 ggplotly(ggplot(data = data, mapping = aes(x = date, y = rollave7.deaths, color = region)) + geom_smooth(se=FALSE) + scale_y_log10() + theme_minimal() + labs(y = "7-day moving average", x = "Date", color = "Regions"))
 ```
