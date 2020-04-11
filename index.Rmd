@@ -1,0 +1,22 @@
+---
+title: "Kim's Places"
+output: html_document
+---
+
+## Deaths, 7-Day Rolling Average
+
+
+```{r, echo=FALSE, warning=F, message=F}
+library(tidyverse)
+library(ggplot2)
+library(plotly)
+data <- read_csv("regions.csv")
+ggplotly(ggplot(data = data, mapping = aes(x = date, y = rollave7.deaths, color = region)) + geom_smooth(se=FALSE) + scale_y_log10() + theme_minimal())
+```
+
+## Cases, 7-Day Rolling Average
+
+```{r, echo=FALSE, warning=F, message=F}
+data <- read_csv("regions.csv")
+ggplotly(ggplot(data = data, mapping = aes(x = date, y = rollave7.cases, color = region)) + geom_smooth(se=FALSE) + scale_y_log10() + theme_minimal())
+```
