@@ -15,9 +15,10 @@ washington <- data %>% filter(state == "Washington")
 la <- data %>% filter(fips == "06037")
 dmv <- data %>% 
   filter(fips %in% c("11001", "51059", "24031", "24033", "51153", "51013", "24003", "24017", "51107", "51061"))
+wi <- data %>% filter(state == "Wisconsin")
 
 # rbind - appending rows
-regions <- rbind(ga, vt, philly, nyc, washington, la, dmv )
+regions <- rbind(ga, vt, philly, nyc, washington, la, dmv, wi )
 regions <- regions %>% 
   select(-fips)
 
