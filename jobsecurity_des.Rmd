@@ -1,0 +1,83 @@
+---
+title: "Job Security Over Time - Descriptives"
+author: "Kimberly Seung Goulart"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+---
+
+```{r, echo=F, message=F, warning=F}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(haven)
+library(beepr)
+library(sjmisc)
+library(ggpubr)
+
+
+setwd("/Volumes/GoogleDrive/My Drive/Thesis/Paper3/data")
+
+d <- readRDS("d.rds")
+perm_eu <- readRDS("perm_eu.rds")
+perm_noneu <- readRDS("perm_noneu.rds")
+sectortable <- readRDS("sectortable.rds")
+```
+
+## Percentage Perm Contract by Country and Year
+
+### EU 
+```{r, echo=F, message=F, warning=F, fig.width=12, fig.height=10}
+
+groups <- unique(perm_eu$country)
+
+for (i in 1:length(groups)){
+  p1 <- ggplot(perm_eu %>% filter(country == groups[i]), aes(as.factor(year),Perm)) + 
+    geom_bar(stat="identity") + 
+    labs(title = groups[i], x = "Year", y = "% Perm") +
+    coord_cartesian(ylim = c(.6, 1))
+    theme_minimal()
+  
+  assign(paste0("eu",i),p1)
+}
+
+ggarrange(eu1,eu2,eu3,eu4,eu5,eu6,eu7,eu8,eu9,eu10,eu11,eu12,eu13,eu14,eu15,eu16,eu17,eu18,eu19,eu20,eu21,eu22,eu23, eu24)
+```
+
+### Non-EU
+```{r, echo=F, message=F, warning=F, out.height="100%"}
+
+groups <- unique(perm_noneu$country)
+
+for (i in 1:length(groups)){
+  p2 <- ggplot(perm_noneu %>% filter(country == groups[i]), aes(as.factor(year),Perm)) + 
+    geom_bar(stat="identity") + 
+    labs(title = groups[i], x = "Year", y = "% Perm") + 
+    coord_cartesian(ylim = c(.6, 1)) +
+    theme_minimal()
+  
+  assign(paste0("noneu",i),p2)
+}
+
+ggarrange(noneu1,noneu2,noneu3,noneu4,noneu5,noneu6,noneu7)
+```
+
+
+## Percentage perm Contract by Sector and Year
+
+### EU 
+```{r, echo=F, message=F, warning=F, fig.width=12}
+
+groups <- unique(sectortable$sector)
+
+for (i in 1:length(groups)){
+  p3 <- ggplot(sectortable %>% filter(sector == groups[i]), aes(as.factor(year),Perm)) + 
+    geom_bar(stat="identity") + 
+    labs(title = groups[i], x = "Year", y = "% Perm" ) + 
+    coord_cartesian(ylim = c(.6, 1)) +
+    theme_minimal() 
+
+  assign(paste0("sec",i),p3)
+}
+
+ggarrange(sec1,sec2,sec3,sec4,sec5,sec6,sec7,sec8,sec9,sec10,sec11)
+```
