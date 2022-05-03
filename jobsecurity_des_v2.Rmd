@@ -1,0 +1,169 @@
+---
+title: "Job Security Over Time - Descriptives"
+author: "Kimberly Seung Goulart"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+---
+
+```{r, echo=F, message=F, warning=F}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(haven)
+library(beepr)
+library(sjmisc)
+library(ggpubr)
+library(ggplot2)
+library(plotly)
+
+setwd("/Volumes/GoogleDrive/My Drive/Thesis/Paper3/data")
+d <- readRDS("dcleaned.rds")
+
+west <- c("AT", "BE", "BG", "HR", "DK", "FI", "FR", "DE", "EL", "IE", "IT", "LU", "NL", "PL", "PT", "SI", "ES", "SE")
+east <- c("CZ", "EE", "CY", "LV", "LT", "HU", "MT", "RO", "SK")
+
+
+
+```
+
+## Average Tenure Over Time by Countries (EU28)
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+countrytable <- d %>% 
+  filter(country %in% west) %>% 
+  group_by(country,year) %>% 
+  summarise(meantenure = mean(tenure, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+  na.omit()
+
+ggplotly(ggplot(countrytable, aes(year,meantenure, group=country, colour=country)) +
+           geom_line() +
+           geom_point() +
+           geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
+           labs(x = "Year", y = "Average Tenure"))
+
+```
+
+
+## Average Tenure Over Time (EU28)
+
+### Countries with relevant data from 1995-2015
+
+_Notes: Includes only western European countries and Bulgaria._
+_The survey weights only cover from 2000. Therefore the weighted graph and unweighted graphs are included, until I can calculate the weights separately for 1995._
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+d %>% 
+  filter(country %in% west) %>% 
+  group_by(year) %>% 
+  summarise(meantenure = weighted.mean(tenure, w5_EU28, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+  na.omit() %>% 
+  ggplot(aes(year,meantenure)) + 
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Weighted Average Tenure")
+
+
+
+d %>% 
+  filter(country %in% west) %>% 
+  group_by(year) %>% 
+  summarise(meantenure = mean(tenure, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+  na.omit() %>% 
+  ggplot(aes(year,meantenure)) + 
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Unweighted Average Tenure")
+
+```
+
+
+### Countries with relevant data from 2001-2015 
+
+_Notes: Includes only eastern European countries (sans Bulgaria) with consistent years._
+_The survey weights only cover from 2001 Therefore the weighted graph and unweighted graphs are included, until I can calculate the weights separately for 1995._
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+d %>% 
+  filter(country %in% east) %>% 
+  group_by(year) %>% 
+  summarise(meantenure = weighted.mean(tenure, w5_EU28, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+  na.omit() %>% 
+  ggplot(aes(year,meantenure)) + 
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Weighted Average Tenure")
+
+
+
+d %>% 
+  filter(country %in% east) %>% 
+  group_by(year) %>% 
+  summarise(meantenure = mean(tenure, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+  na.omit() %>% 
+  ggplot(aes(year,meantenure)) + 
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Unweighted Average Tenure")
+
+```
+
+
+
+## Average Tenure Over Time by Gender (EU28)
+
+### 2000 - 2015
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+d%>% 
+  filter(country %in% west) %>% 
+  group_by(sex,year) %>% 
+  summarise(meantenure = weighted.mean(tenure, w5_EU28, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+  na.omit() %>% 
+  ggplot(aes(year,meantenure, group=sex, colour=sex)) + 
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Weighted Average tenure")
+
+
+```
+
+
+### 2001 - 2015
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+d%>% 
+  filter(country %in% east) %>% 
+  group_by(sex,year) %>% 
+  summarise(meantenure = weighted.mean(tenure, w5_EU28, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+  na.omit() %>% 
+  ggplot(aes(year,meantenure, group=sex, colour=sex)) + 
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Weighted Average Tenure")
+
+
+```
+
