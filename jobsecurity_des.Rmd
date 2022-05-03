@@ -17,16 +17,24 @@ library(ggpubr)
 
 setwd("/Volumes/GoogleDrive/My Drive/Thesis/Paper3/data")
 
-d <- readRDS("d.rds")
 perm_eu <- readRDS("perm_eu.rds")
 perm_noneu <- readRDS("perm_noneu.rds")
 sectortable <- readRDS("sectortable.rds")
+tenure_eu <- readRDS("tenure_eu.rds")
+tenure_noneu <- readRDS("tenure_noneu.rds")
+lose_eu <- readRDS("lose_eu.rds")
+lose_noneu <- readRDS("lose_noneu.rds")
+easy_eu <- readRDS("easy_eu.rds")
+easy_noneu <- readRDS("easy_noneu.rds")
+subsectortable <- readRDS("subsectortable.rds")
+easysectortable <- readRDS("easysectortable.rds")
+
 ```
 
-## Percentage Perm Contract by Country and Year
+## Percentage of Workers on a Permanent Contract by Country and Year
 
 ### EU 
-```{r, echo=F, message=F, warning=F, fig.width=12, fig.height=10}
+```{r, echo=F, message=F, warning=F, fig.width=12, fig.height=12}
 
 groups <- unique(perm_eu$country)
 
@@ -44,7 +52,7 @@ ggarrange(eu1,eu2,eu3,eu4,eu5,eu6,eu7,eu8,eu9,eu10,eu11,eu12,eu13,eu14,eu15,eu16
 ```
 
 ### Non-EU
-```{r, echo=F, message=F, warning=F, out.height="100%"}
+```{r, echo=F, message=F, warning=F}
 
 groups <- unique(perm_noneu$country)
 
@@ -62,9 +70,8 @@ ggarrange(noneu1,noneu2,noneu3,noneu4,noneu5,noneu6,noneu7)
 ```
 
 
-## Percentage perm Contract by Sector and Year
+## Percentage of Workers on a Permanent Contract by Sector and Year
 
-### EU 
 ```{r, echo=F, message=F, warning=F, fig.width=12}
 
 groups <- unique(sectortable$sector)
@@ -73,11 +80,178 @@ for (i in 1:length(groups)){
   p3 <- ggplot(sectortable %>% filter(sector == groups[i]), aes(as.factor(year),Perm)) + 
     geom_bar(stat="identity") + 
     labs(title = groups[i], x = "Year", y = "% Perm" ) + 
-    coord_cartesian(ylim = c(.6, 1)) +
+    coord_cartesian(ylim = c(.7, 1)) +
     theme_minimal() 
 
   assign(paste0("sec",i),p3)
 }
 
 ggarrange(sec1,sec2,sec3,sec4,sec5,sec6,sec7,sec8,sec9,sec10,sec11)
+```
+
+
+## Average Tenure (in Years) Over Time
+
+### EU 
+```{r, echo=F, message=F, warning=F, fig.width=12, fig.height=12}
+groups <- unique(tenure_eu$country)
+
+for (i in 1:length(groups)){
+  teu <- ggplot(tenure_eu %>% filter(country == groups[i]), aes(as.factor(year),meantenure)) + 
+    geom_bar(stat="identity") + 
+    labs(title = groups[i], x = "Year", y = "Average tenure" ) + 
+    coord_cartesian(ylim = c(7, 15)) +
+    theme_minimal() 
+  
+  assign(paste0("teu",i),teu)
+}
+
+ggpubr::ggarrange(teu1,teu2,teu3,teu4,teu5,teu6,teu7,teu8,teu9,teu10,teu11,teu12,teu13,teu14,teu15,teu16,teu17,teu18,teu19,teu20,teu21,teu22,teu23)
+
+```
+
+### Non-EU 
+```{r, echo=F, message=F, warning=F}
+groups <- unique(tenure_noneu$country)
+
+for (i in 1:length(groups)){
+  tnoneu <- ggplot(tenure_noneu %>% filter(country == groups[i]), aes(as.factor(year),meantenure)) + 
+    geom_bar(stat="identity") + 
+    labs(title = groups[i], x = "Year", y = "Average tenure" ) + 
+    coord_cartesian(ylim = c(7, 13)) +
+    theme_minimal() 
+  
+  assign(paste0("tnoneu",i),tnoneu)
+}
+
+ggpubr::ggarrange(tnoneu1,tnoneu2,tnoneu3,tnoneu4,tnoneu5,tnoneu6,tnoneu7)
+
+```
+
+
+## Subjective Job Security (Likely to lose job)
+
+5 Point Scale: Strongly Agree (1) to Strongly Disagree (5): I might lose my job in the next 6 months?
+
+### EU 
+```{r, echo=F, message=F, warning=F, fig.width=12, fig.height=12}
+groups <- unique(lose_eu$country)
+
+for (i in 1:length(groups)){
+  leu <- ggplot(lose_eu %>% filter(country == groups[i]), aes(as.factor(year),meanlosejob)) + 
+    geom_bar(stat="identity") + 
+    labs(title = groups[i], x = "Year", y = "Lose job" ) + 
+    geom_errorbar(aes(ymin=meanlosejob-se, ymax=meanlosejob+se), colour="grey", position=position_dodge(width = 1), width=0.4) +
+    coord_cartesian(ylim = c(2,5)) +
+    theme_minimal() 
+  
+  assign(paste0("leu",i),leu)
+}
+
+ggpubr::ggarrange(leu1,leu2,leu3,leu4,leu5,leu6,leu7,leu8,leu9,leu10,leu11,leu12,leu13,leu14,leu15,leu16,leu17,leu18,leu19,leu20,leu21,leu22,leu23)
+
+```
+
+### Non-EU 
+```{r, echo=F, message=F, warning=F}
+groups <- unique(lose_noneu$country)
+
+for (i in 1:length(groups)){
+  lnoneu <- ggplot(lose_noneu %>% filter(country == groups[i]), aes(as.factor(year),meanlosejob)) + 
+    geom_bar(stat="identity") + 
+    labs(title = groups[i], x = "Year", y = "Lose job" ) + 
+    geom_errorbar(aes(ymin=meanlosejob-se, ymax=meanlosejob+se), colour="grey", position=position_dodge(width = 1), width=0.4) +
+    coord_cartesian(ylim = c(2,5)) +
+    theme_minimal() 
+  
+  assign(paste0("lnoneu",i),lnoneu)
+}
+
+ggpubr::ggarrange(lnoneu1,lnoneu2,lnoneu3,lnoneu4,lnoneu5,lnoneu6,lnoneu7)
+
+```
+
+## Subjective Job Security by Sector and Year
+
+```{r, echo=F, message=F, warning=F, fig.width=10, fig.height=10}
+
+groups <- unique(subsectortable$sector)
+
+for (i in 1:length(groups)){
+  sub <- ggplot(subsectortable %>% filter(sector == groups[i]), aes(as.factor(year),meanlosejob)) + 
+    geom_bar(stat="identity") + 
+    labs(title = groups[i], x = "Year", y = "Lose job" ) + 
+    geom_errorbar(aes(ymin=meanlosejob-se, ymax=meanlosejob+se), colour="grey", position=position_dodge(width = 1), width=0.4) +
+    coord_cartesian(ylim = c(3, 5)) +
+    theme_minimal() 
+
+  assign(paste0("sub",i),sub)
+}
+
+ggarrange(sub1,sub2,sub3,sub4,sub5,sub6,sub7,sub8,sub9,sub10,sub11)
+```
+
+
+
+## Subjective Job Security (Easy to find a new job)
+
+5 Point Scale: Strongly Agree (1) to Strongly Disagree (5): If I were to lose or quit my job,it would be easy for me to find a new job
+
+
+### EU 
+```{r, echo=F, message=F, warning=F, fig.width=12, fig.height=12}
+groups <- unique(easy_eu$country)
+
+for (i in 1:length(groups)){
+  eeu <- ggplot(easy_eu %>% filter(country == groups[i]), aes(as.factor(year),meaneasyfind)) + 
+    geom_bar(stat="identity") + 
+    labs(title = groups[i], x = "Year", y = "Easy to find" ) + 
+    geom_errorbar(aes(ymin=meaneasyfind-se, ymax=meaneasyfind+se), colour="grey", position=position_dodge(width = 1), width=0.4) +
+    coord_cartesian(ylim = c(2,5)) +
+    theme_minimal() 
+  
+  assign(paste0("eeu",i),eeu)
+}
+
+ggpubr::ggarrange(eeu1,eeu2,eeu3,eeu4,eeu5,eeu6,eeu7,eeu8,eeu9,eeu10,eeu11,eeu12,eeu13,eeu14,eeu15,eeu16,eeu17,eeu18,eeu19,eeu20,eeu21,eeu22,eeu23)
+
+```
+
+### Non-EU 
+```{r, echo=F, message=F, warning=F}
+groups <- unique(easy_noneu$country)
+
+for (i in 1:length(groups)){
+  enoneu <- ggplot(easy_noneu %>% filter(country == groups[i]), aes(as.factor(year),meaneasyfind)) + 
+    geom_bar(stat="identity") + 
+    labs(title = groups[i], x = "Year", y = "Easy to find" ) + 
+    geom_errorbar(aes(ymin=meaneasyfind-se, ymax=meaneasyfind+se), colour="grey", position=position_dodge(width = 1), width=0.4) +
+    coord_cartesian(ylim = c(2,5)) +
+    theme_minimal() 
+  
+  assign(paste0("enoneu",i),enoneu)
+}
+
+ggpubr::ggarrange(enoneu1,enoneu2,enoneu3,enoneu4,enoneu5,enoneu6,enoneu7)
+
+```
+
+## Easy to Find a Job by Sector and Year
+
+```{r, echo=F, message=F, warning=F}
+
+groups <- unique(easysectortable$sector)
+
+for (i in 1:length(groups)){
+  esub <- ggplot(easysectortable %>% filter(sector == groups[i]), aes(as.factor(year),meaneasyfind)) + 
+    geom_bar(stat="identity") + 
+    labs(title = groups[i], x = "Year", y = "Lose job" ) + 
+    geom_errorbar(aes(ymin=meaneasyfind-se, ymax=meaneasyfind+se), colour="grey", position=position_dodge(width = 1), width=0.4) +
+    coord_cartesian(ylim = c(2,5)) +
+    theme_minimal() 
+
+  assign(paste0("esub",i),esub)
+}
+
+ggarrange(esub1,esub2,esub3,esub4,esub5,esub6,esub7,esub8,esub9,esub10,esub11)
 ```
