@@ -28,10 +28,12 @@ east <- c("CZ", "EE", "CY", "LV", "LT", "HU", "MT", "RO", "SK")
 
 ## Average Tenure Over Time by Countries (EU28)
 
+_Notes: Double click to isolate a country line_
+_Click on country abbreviation to remove from the chart_
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 countrytable <- d %>% 
-  filter(country %in% west) %>% 
   group_by(country,year) %>% 
   summarise(meantenure = mean(tenure, na.rm = T),
             count = n(),
@@ -51,7 +53,7 @@ ggplotly(ggplot(countrytable, aes(year,meantenure, group=country, colour=country
 
 ### Countries with relevant data from 1995-2015
 
-_Notes: Includes only western European countries and Bulgaria._
+_Notes: Includes only Western European countries and Bulgaria._
 _The survey weights only cover from 2000. Therefore the weighted graph and unweighted graphs are included, until I can calculate the weights separately for 1995._
 
 
@@ -68,7 +70,8 @@ d %>%
   geom_line() +
   geom_point() +
   geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
-  labs(x = "Year", y = "Weighted Average Tenure")
+  labs(x = "Year", y = "Weighted Average Tenure") + 
+  coord_cartesian(ylim = c(8,12))
 
 
 
@@ -83,7 +86,8 @@ d %>%
   geom_line() +
   geom_point() +
   geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
-  labs(x = "Year", y = "Unweighted Average Tenure")
+  labs(x = "Year", y = "Unweighted Average Tenure") +
+  coord_cartesian(ylim = c(8,12))
 
 ```
 
@@ -106,7 +110,8 @@ d %>%
   geom_line() +
   geom_point() +
   geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
-  labs(x = "Year", y = "Weighted Average Tenure")
+  labs(x = "Year", y = "Weighted Average Tenure") +
+  coord_cartesian(ylim = c(8, 12))
 
 
 
@@ -121,7 +126,8 @@ d %>%
   geom_line() +
   geom_point() +
   geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
-  labs(x = "Year", y = "Unweighted Average Tenure")
+  labs(x = "Year", y = "Unweighted Average Tenure") +
+  coord_cartesian(ylim = c(8,12))
 
 ```
 
@@ -142,7 +148,8 @@ d%>%
   geom_line() +
   geom_point() +
   geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
-  labs(x = "Year", y = "Weighted Average tenure")
+  labs(x = "Year", y = "Weighted Average tenure") +
+  coord_cartesian(ylim = c(8, 12))
 
 
 ```
@@ -162,7 +169,8 @@ d%>%
   geom_line() +
   geom_point() +
   geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
-  labs(x = "Year", y = "Weighted Average Tenure")
+  labs(x = "Year", y = "Weighted Average Tenure") +
+  coord_cartesian(ylim = c(8,12))
 
 
 ```
