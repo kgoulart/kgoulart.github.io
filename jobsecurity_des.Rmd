@@ -17,160 +17,83 @@ library(ggplot2)
 library(plotly)
 
 setwd("/Volumes/GoogleDrive/My Drive/Thesis/Paper3/data")
-d <- readRDS("dcleaned.rds")
-
-west <- c("AT", "BE", "BG", "HR", "DK", "FI", "FR", "DE", "EL", "IE", "IT", "LU", "NL", "PL", "PT", "SI", "ES", "SE")
-east <- c("CZ", "EE", "CY", "LV", "LT", "HU", "MT", "RO", "SK")
-
+d <- readRDS("5cleaned.rds")
 
 
 ```
 
 ## Average Tenure Over Time by Countries (EU28)
 
-_Notes: Double click to isolate a country line_
-_Click on country abbreviation to remove from the chart_
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
-countrytable <- d %>% 
-  group_by(country,year) %>% 
-  summarise(meantenure = mean(tenure, na.rm = T),
+countrytable <- d %>%
+  group_by(country,year) %>%
+  summarise(meantenure = weighted.mean(tenure, w4, na.rm = T),
             count = n(),
-            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>%
   na.omit()
 
-ggplotly(ggplot(countrytable, aes(year,meantenure, group=country, colour=country)) +
-           geom_line() +
-           geom_point() +
-           geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
-           labs(x = "Year", y = "Average Tenure"))
-
-```
-
-
-## Average Tenure Over Time (EU28)
-
-### Countries with relevant data from 1995-2015
-
-_Notes: Includes only Western European countries and Bulgaria._
-_The survey weights only cover from 2000. Therefore the weighted graph and unweighted graphs are included, until I can calculate the weights separately for 1995._
-
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-
-d %>% 
-  filter(country %in% west) %>% 
+alltable <- d %>% 
   group_by(year) %>% 
-  summarise(meantenure = weighted.mean(tenure, w5_EU28, na.rm = T),
+  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
             count = n(),
             se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
-  na.omit() %>% 
-  ggplot(aes(year,meantenure)) + 
-  geom_line() +
-  geom_point() +
-  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
-  labs(x = "Year", y = "Weighted Average Tenure") + 
-  coord_cartesian(ylim = c(8,12))
+  mutate(country = "All") %>% 
+  ungroup()
 
+countrytable <- countrytable %>% 
+  bind_rows(alltable)
 
-
-d %>% 
-  filter(country %in% west) %>% 
-  group_by(year) %>% 
-  summarise(meantenure = mean(tenure, na.rm = T),
-            count = n(),
-            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
-  na.omit() %>% 
-  ggplot(aes(year,meantenure)) + 
-  geom_line() +
-  geom_point() +
-  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
-  labs(x = "Year", y = "Unweighted Average Tenure") +
-  coord_cartesian(ylim = c(8,12))
-
-```
-
-
-### Countries with relevant data from 2001-2015 
-
-_Notes: Includes only eastern European countries (sans Bulgaria) with consistent years._
-_The survey weights only cover from 2001 Therefore the weighted graph and unweighted graphs are included, until I can calculate the weights separately for 1995._
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-
-d %>% 
-  filter(country %in% east) %>% 
-  group_by(year) %>% 
-  summarise(meantenure = weighted.mean(tenure, w5_EU28, na.rm = T),
-            count = n(),
-            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
-  na.omit() %>% 
-  ggplot(aes(year,meantenure)) + 
-  geom_line() +
+ggplot(countrytable, aes(year,meantenure)) + 
+  geom_line() + 
   geom_point() +
   geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
   labs(x = "Year", y = "Weighted Average Tenure") +
-  coord_cartesian(ylim = c(8, 12))
-
-
-
-d %>% 
-  filter(country %in% east) %>% 
-  group_by(year) %>% 
-  summarise(meantenure = mean(tenure, na.rm = T),
-            count = n(),
-            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
-  na.omit() %>% 
-  ggplot(aes(year,meantenure)) + 
-  geom_line() +
-  geom_point() +
-  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
-  labs(x = "Year", y = "Unweighted Average Tenure") +
-  coord_cartesian(ylim = c(8,12))
+  facet_wrap(~country)
 
 ```
-
 
 
 ## Average Tenure Over Time by Gender (EU28)
 
-### 2000 - 2015
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-d%>% 
-  filter(country %in% west) %>% 
-  group_by(sex,year) %>% 
-  summarise(meantenure = weighted.mean(tenure, w5_EU28, na.rm = T),
+
+gendertable <- d %>%
+  group_by(country,sex,year) %>%
+  summarise(meantenure = weighted.mean(tenure, w4, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>%
+  na.omit()
+
+alltable <- d %>% 
+  group_by(sex, year) %>% 
+  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
             count = n(),
             se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
   na.omit() %>% 
-  ggplot(aes(year,meantenure, group=sex, colour=sex)) + 
-  geom_line() +
+  mutate(country = "All") %>% 
+  ungroup()
+
+gendertable <- gendertable %>% 
+  bind_rows(alltable)
+
+
+ggplot(gendertable, aes(year,meantenure, group = sex, colour = sex)) + 
+  geom_line() + 
   geom_point() +
   geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
-  labs(x = "Year", y = "Weighted Average tenure") +
-  coord_cartesian(ylim = c(8, 12))
+  labs(x = "Year", y = "Weighted Average Tenure") +
+  facet_wrap(~country)
+
 
 
 ```
 
 
-### 2001 - 2015
+## Models
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-d%>% 
-  filter(country %in% east) %>% 
-  group_by(sex,year) %>% 
-  summarise(meantenure = weighted.mean(tenure, w5_EU28, na.rm = T),
-            count = n(),
-            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
-  na.omit() %>% 
-  ggplot(aes(year,meantenure, group=sex, colour=sex)) + 
-  geom_line() +
-  geom_point() +
-  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
-  labs(x = "Year", y = "Weighted Average Tenure") +
-  coord_cartesian(ylim = c(8,12))
+
 
 
 ```
