@@ -1,0 +1,134 @@
+---
+title: "Job Tenure Over Time"
+author: "Kimberly Seung Goulart"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+---
+
+```{r, echo=F, message=F, warning=F}
+
+library(tidyverse)
+library(haven)
+library(beepr)
+library(sjmisc)
+library(ggpubr)
+library(ggplot2)
+library(plotly)
+library(sjPlot)
+
+setwd("/Volumes/GoogleDrive/My Drive/Thesis/Paper3/data")
+four <- readRDS("4cleaned.rds")
+
+
+```
+
+
+# Four Countries - UK, FR, DE, IT (includes the 4 Western European countries with the largest populations)
+
+## Average Tenure Over Time 
+
+I used both weights and multiplied them together - Post-stratification x Country In-Work popoulation
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+countrytable <- four %>%
+  group_by(country,year) %>%
+  summarise(meantenure = weighted.mean(tenure, w45, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>%
+  na.omit()
+
+alltable <- four %>% 
+  group_by(year) %>% 
+  summarise(meantenure = weighted.mean(tenure, w45, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+  mutate(country = "All") %>% 
+  ungroup()
+
+countrytable <- countrytable %>% 
+  bind_rows(alltable)
+
+ggplot(countrytable, aes(year,meantenure)) + 
+  geom_line() + 
+  geom_point() +
+  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Weighted Average Tenure") +
+  facet_wrap(~country)
+
+```
+
+
+## Average Tenure Over Time by Gender
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+gendertable <- four %>%
+  group_by(country,sex,year) %>%
+  summarise(meantenure = weighted.mean(tenure, w45, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>%
+  na.omit()
+
+alltable <-four %>% 
+  group_by(sex, year) %>% 
+  summarise(meantenure = weighted.mean(tenure, w45, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+  na.omit() %>% 
+  mutate(country = "All") %>% 
+  ungroup()
+
+gendertable <- gendertable %>% 
+  bind_rows(alltable)
+
+ggplot(gendertable, aes(year,meantenure, group = sex, colour = sex)) + 
+  geom_line() + 
+  geom_point() +
+  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Weighted Average Tenure") +
+  facet_wrap(~country)
+
+
+
+```
+
+
+## Models
+
+Time (year) variable is treated as a continuous variable.
+
+**Controls**
+Age, age squared, migrant dummy, country
+
+Weights - post-stratification weights
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+theme_set(theme_sjplot())
+
+summary(m1 <- lm(tenure ~ year + age + I(age^2) + sex + imm + country, data = four, weights = w45))
+plot_model(m1, type = 'pred', terms = c("year"))
+
+summary(m2 <- lm(tenure ~ year*country + age + I(age^2) + sex + imm + country, data = four, weights = w4))
+plot_model(m2, type = "pred", terms = c("year", "country"))
+
+summary(m3 <- lm(tenure ~ year*cohort*country + age + I(age^2) + sex + imm , data = four, weights = w4))
+plot_model(m3, type = "pred", terms = c("year", "cohort", "country"))
+
+summary(m4 <- lm(tenure ~ year*sex*country + age + I(age^2) + imm, data = four, weights = w4))
+plot_model(m4, type = "pred", terms = c("year", "sex", "country"))
+
+
+
+```
+
+
+### Testing to see how well the model worked.
+
+```{r}
+four <-four %>% 
+  mutate(pred = predict(m1, newdata = .))
+
+four %>% select(tenure, pred) %>% pivot_longer(cols = everything()) %>% ggplot(aes(value, fill = name)) + geom_density(alpha = .5)
+
+```

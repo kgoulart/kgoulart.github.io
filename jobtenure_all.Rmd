@@ -1,12 +1,11 @@
 ---
-title: "Job Security Over Time - Descriptives"
+title: "Job Tenure Over Time - All Western Europe"
 author: "Kimberly Seung Goulart"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: html_document
 ---
 
 ```{r, echo=F, message=F, warning=F}
-knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(haven)
@@ -15,27 +14,33 @@ library(sjmisc)
 library(ggpubr)
 library(ggplot2)
 library(plotly)
+library(sjPlot)
 
 setwd("/Volumes/GoogleDrive/My Drive/Thesis/Paper3/data")
-d <- readRDS("5cleaned.rds")
+redux<- readRDS("dcleaned.rds")
 
 
 ```
 
-## Average Tenure Over Time by Countries (EU28)
+
+# All Western European Countries (13 countries for which there is data from 1995-2015)
+
+## Average Tenure Over Time 
+
+I used both weights and multiplied them together - Post-stratification x Country In-Work popoulation
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
-countrytable <- d %>%
+countrytable <- redux %>%
   group_by(country,year) %>%
-  summarise(meantenure = weighted.mean(tenure, w4, na.rm = T),
+  summarise(meantenure = weighted.mean(tenure, w45, na.rm = T),
             count = n(),
             se = sd(tenure, na.rm = T)/sqrt(count)) %>%
   na.omit()
 
-alltable <- d %>% 
+alltable <- redux %>% 
   group_by(year) %>% 
-  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
+  summarise(meantenure = weighted.mean(tenure, w45, na.rm = T),
             count = n(),
             se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
   mutate(country = "All") %>% 
@@ -54,20 +59,20 @@ ggplot(countrytable, aes(year,meantenure)) +
 ```
 
 
-## Average Tenure Over Time by Gender (EU28)
+## Average Tenure Over Time by Gender
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
-gendertable <- d %>%
+gendertable <- redux %>%
   group_by(country,sex,year) %>%
-  summarise(meantenure = weighted.mean(tenure, w4, na.rm = T),
+  summarise(meantenure = weighted.mean(tenure, w45, na.rm = T),
             count = n(),
             se = sd(tenure, na.rm = T)/sqrt(count)) %>%
   na.omit()
 
-alltable <- d %>% 
+alltable <-redux %>% 
   group_by(sex, year) %>% 
-  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
+  summarise(meantenure = weighted.mean(tenure, w45, na.rm = T),
             count = n(),
             se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
   na.omit() %>% 
@@ -76,7 +81,6 @@ alltable <- d %>%
 
 gendertable <- gendertable %>% 
   bind_rows(alltable)
-
 
 ggplot(gendertable, aes(year,meantenure, group = sex, colour = sex)) + 
   geom_line() + 
@@ -92,9 +96,36 @@ ggplot(gendertable, aes(year,meantenure, group = sex, colour = sex)) +
 
 ## Models
 
+Time (year) variable is treated as a continuous variable.
+
+**Controls**
+Age, age squared, migrant dummy, country
+
+Weights - post-stratification weights
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+theme_set(theme_sjplot())
+
+summary(m1 <- lm(tenure ~ year + age + I(age^2) + sex + imm + country, data = redux, weights = w45))
+plot_model(m1, type = 'pred', terms = c("year"))
+
+summary(m2 <- lm(tenure ~ year*cohort*country + age + I(age^2) + sex + imm , data = redux, weights = w4))
+plot_model(m2, type = "pred", terms = c("year", "cohort", "country"))
+
+summary(m3 <- lm(tenure ~ year*sex*country + age + I(age^2) + imm, data = redux, weights = w4))
+plot_model(m3, type = "pred", terms = c("year", "sex", "country"))
 
 
 
 ```
 
+
+### Testing to see how well the model worked.
+
+```{r}
+redux<-redux%>% 
+  mutate(pred = predict(m1, newdata = .))
+
+redux%>% select(tenure, pred) %>% pivot_longer(cols = everything()) %>% ggplot(aes(value, fill = name)) + geom_density(alpha = .5)
+
+```
