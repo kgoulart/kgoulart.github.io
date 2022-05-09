@@ -27,7 +27,7 @@ four <- readRDS("4cleaned.rds")
 
 ## Average Tenure Over Time 
 
-I used both weights and multiplied them together - Post-stratification x Country In-Work popoulation
+I used both weights and multiplied them together - Post-stratification x Country In-Work population
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
