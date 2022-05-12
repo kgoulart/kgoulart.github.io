@@ -1,0 +1,204 @@
+---
+title: "Job Tenure Over Time"
+author: "Kimberly Seung Goulart"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+---
+
+```{r, echo=F, message=F, warning=F}
+
+library(tidyverse)
+library(haven)
+library(beepr)
+library(sjmisc)
+library(ggpubr)
+library(ggplot2)
+library(plotly)
+library(sjPlot)
+
+setwd("/Volumes/GoogleDrive/My Drive/Thesis/Paper3/data")
+five <- readRDS("5cleaned.rds")
+
+
+```
+
+
+# five Countries - UK, FR, DE, IT (includes the 4 Western European countries with the largest populations)
+
+## Average Tenure Over Time 
+
+I used both weights and multiplied them together - Post-stratification x Country In-Work population
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+countrytable <- five %>%
+  group_by(country,year) %>%
+  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>%
+  na.omit()
+
+alltable <- five %>% 
+  group_by(year) %>% 
+  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+  mutate(country = "All") %>% 
+  ungroup()
+
+countrytable <- countrytable %>% 
+  bind_rows(alltable)
+
+ggplot(countrytable, aes(year,meantenure)) + 
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Weighted Average Tenure") +
+  facet_wrap(~country)
+
+```
+
+
+## Average Tenure Over Time by Gender
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+gendertable <- five %>%
+  group_by(country,sex,year) %>%
+  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>%
+  na.omit()
+
+alltable <-five %>% 
+  group_by(sex, year) %>% 
+  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+  na.omit() %>% 
+  mutate(country = "All") %>% 
+  ungroup()
+
+gendertable <- gendertable %>% 
+  bind_rows(alltable)
+
+ggplot(gendertable, aes(year,meantenure, group = sex, colour = sex)) + 
+  geom_line() + 
+  geom_point() +
+  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Weighted Average Tenure") +
+  facet_wrap(~country)
+
+```
+
+
+## Average Tenure Over Time by Occupational Class
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+occtable <- five %>%
+  group_by(country,occ_class,year) %>%
+  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>%
+  na.omit()
+
+alltable <-five %>% 
+  group_by(occ_class, year) %>% 
+  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
+            count = n(),
+            se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
+  na.omit() %>% 
+  mutate(country = "All") %>% 
+  ungroup()
+
+occtable <- occtable %>% 
+  bind_rows(alltable)
+
+ggplot(occtable, aes(year,meantenure, group = occ_class, colour = occ_class)) + 
+  geom_line() + 
+  geom_point() +
+  geom_errorbar(aes(ymin=meantenure-se, ymax=meantenure+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Weighted Average Tenure") +
+  facet_wrap(~country)
+
+
+
+```
+
+
+
+
+## Models
+
+Time (year) variable is treated as a continuous variable.
+
+**Controls**
+Age, age squared, migrant dummy, country
+
+Weights - post-stratification weights
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+theme_set(theme_sjplot())
+
+five <- fastDummies::dummy_columns(five, select_columns = "occ_class")
+
+# removes country dummies and includes workforce weight
+summary(m1 <- lm(tenure ~ year + age + imm + occ_classl, data = five, weights = w5))
+m1plot <- plot_model(m1, type = 'pred', terms = c("year"), title = "All") + ylim(8, 15)
+
+summary(m1 <- loess(tenure ~ year + age + women + imm, data = five, weights = w5, span = 0.75))
+m1plot <- plot_model(m1, type = 'pred', terms = c("year"), title = "All") + ylim(8, 15)
+
+summary(mfr <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(d, country=="FR"), weights = w4))
+frplot <- plot_model(mfr, type = 'pred', terms = c("year"), title = "FR") + ylim(8, 15)
+
+summary(mde <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(d, country=="DE"), weights = w4))
+deplot <- plot_model(mde, type = 'pred', terms = c("year"), title = "DE") + ylim(8, 15)
+
+summary(mit <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(d, country=="IT"), weights = w4))
+itplot <- plot_model(mit, type = 'pred', terms = c("year"), title = "IT") + ylim(08, 15)
+
+summary(mes <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(d, country=="ES"), weights = w4))
+esplot <- plot_model(mes, type = 'pred', terms = c("year"), title = "ES") + ylim(8, 15)
+
+summary(muk <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(d, country=="UK"), weights = w4))
+ukplot <- plot_model(muk, type = 'pred', terms = c("year"), title = "UK") + ylim(8, 15)
+
+ggarrange(frplot, deplot, itplot, esplot, ukplot, m1plot)
+
+
+
+```
+
+### Interactions
+
+```{r}
+
+summary(m2 <- lm(tenure ~ year*country + age + sex + imm + occ_class, data = five, weights = w4))
+plot_model(m2, type = "pred", terms = c("year", "country"))
+
+summary(m3 <- lm(tenure ~ year*sex*country + age + imm + occ_class, data = five, weights = w4))
+plot_model(m3, type = "pred", terms = c("year", "sex", "country"))
+
+summary(m4 <- lm(tenure ~ year*occ_class + age + imm + occ_class, data = five, weights = w4))
+plot_model(m4, type = "pred", terms = c("year", "occ_class"))
+
+summary(m5 <- lm(tenure ~ year*occ_class*country + age + imm + occ_class, data = five, weights = w4))
+plot_model(m5, type = "pred", terms = c("year", "occ_class", "country"))
+
+
+```
+
+
+
+
+### Testing to see how well the model worked.
+
+```{r}
+five <-five %>% 
+  mutate(pred = predict(m1, newdata = .))
+
+five %>% select(tenure, pred) %>% pivot_longer(cols = everything()) %>% ggplot(aes(value, fill = name)) + geom_density(alpha = .5)
+
+```

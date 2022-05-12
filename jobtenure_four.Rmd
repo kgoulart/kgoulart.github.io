@@ -33,14 +33,14 @@ I used both weights and multiplied them together - Post-stratification x Country
 
 countrytable <- four %>%
   group_by(country,year) %>%
-  summarise(meantenure = weighted.mean(tenure, w45, na.rm = T),
+  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
             count = n(),
             se = sd(tenure, na.rm = T)/sqrt(count)) %>%
   na.omit()
 
 alltable <- four %>% 
   group_by(year) %>% 
-  summarise(meantenure = weighted.mean(tenure, w45, na.rm = T),
+  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
             count = n(),
             se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
   mutate(country = "All") %>% 
@@ -56,6 +56,36 @@ ggplot(countrytable, aes(year,meantenure)) +
   labs(x = "Year", y = "Weighted Average Tenure") +
   facet_wrap(~country)
 
+countrytable1 <- four %>%
+  group_by(country,year) %>%
+  summarise(meanshort_ten = weighted.mean(short_ten, w5, na.rm = T),
+            count = n(),
+            se = sd(short_ten, na.rm = T)/sqrt(count)) %>%
+  na.omit()
+
+countrytable2 <- four %>%
+  group_by(country,year) %>%
+  summarise(meanlong_ten = weighted.mean(long_ten, w5, na.rm = T),
+            count = n(),
+            se = sd(long_ten, na.rm = T)/sqrt(count)) %>%
+  na.omit()
+
+
+ggplot(countrytable1, aes(year,meanshort_ten)) + 
+  geom_line() + 
+  geom_point() +
+  geom_errorbar(aes(ymin=meanshort_ten-se, ymax=meanshort_ten+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Weighted Average Tenure") +
+  facet_wrap(~country)
+
+ggplot(countrytable2, aes(year,meanlong_ten)) + 
+  geom_line() + 
+  geom_point() +
+  geom_errorbar(aes(ymin=meanlong_ten-se, ymax=meanlong_ten+se), width=.2, position=position_dodge(0.05)) +
+  labs(x = "Year", y = "Weighted Average Tenure") +
+  facet_wrap(~country)
+
+
 ```
 
 
@@ -65,14 +95,14 @@ ggplot(countrytable, aes(year,meantenure)) +
 
 gendertable <- four %>%
   group_by(country,sex,year) %>%
-  summarise(meantenure = weighted.mean(tenure, w45, na.rm = T),
+  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
             count = n(),
             se = sd(tenure, na.rm = T)/sqrt(count)) %>%
   na.omit()
 
 alltable <-four %>% 
   group_by(sex, year) %>% 
-  summarise(meantenure = weighted.mean(tenure, w45, na.rm = T),
+  summarise(meantenure = weighted.mean(tenure, w5, na.rm = T),
             count = n(),
             se = sd(tenure, na.rm = T)/sqrt(count)) %>% 
   na.omit() %>% 
@@ -106,7 +136,7 @@ Weights - post-stratification weights
 
 theme_set(theme_sjplot())
 
-summary(m1 <- lm(tenure ~ year + age + I(age^2) + sex + imm + country, data = four, weights = w45))
+summary(m1 <- lm(tenure ~ year + age + I(age^2) + sex + imm + country, data = four, weights = w4))
 plot_model(m1, type = 'pred', terms = c("year"))
 
 summary(m2 <- lm(tenure ~ year*country + age + I(age^2) + sex + imm + country, data = four, weights = w4))
