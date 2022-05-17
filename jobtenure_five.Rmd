@@ -141,28 +141,31 @@ Weights - post-stratification weights
 
 theme_set(theme_sjplot())
 
-five <- fastDummies::dummy_columns(five, select_columns = "occ_class")
+#five <- fastDummies::dummy_columns(five, select_columns = "occ_class")
 
 # removes country dummies and includes workforce weight
-summary(m1 <- lm(tenure ~ year + age + imm + occ_classl, data = five, weights = w5))
+
+summary(m1 <- lm(tenure ~ year + age + sex + imm, data = five, weights = w5))
 m1plot <- plot_model(m1, type = 'pred', terms = c("year"), title = "All") + ylim(8, 15)
 
-summary(m1 <- loess(tenure ~ year + age + women + imm, data = five, weights = w5, span = 0.75))
-m1plot <- plot_model(m1, type = 'pred', terms = c("year"), title = "All") + ylim(8, 15)
+# m1 <- loess(tenure ~ year + age + women, data = five, weights = w5, span = 0.75)
+# tibble(year = c(min(five$year):max(five$year)), age = mean(five$age), women = mean(five$women, na.rm = T)) %>% mutate(pred = predict(m1,.))
+# 
+# m1plot <- plot_model(m1, type = 'pred', terms = c("year"), title = "All") + ylim(8, 15)
 
-summary(mfr <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(d, country=="FR"), weights = w4))
+summary(mfr <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="FR"), weights = w4))
 frplot <- plot_model(mfr, type = 'pred', terms = c("year"), title = "FR") + ylim(8, 15)
 
-summary(mde <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(d, country=="DE"), weights = w4))
+summary(mde <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="DE"), weights = w4))
 deplot <- plot_model(mde, type = 'pred', terms = c("year"), title = "DE") + ylim(8, 15)
 
-summary(mit <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(d, country=="IT"), weights = w4))
+summary(mit <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="IT"), weights = w4))
 itplot <- plot_model(mit, type = 'pred', terms = c("year"), title = "IT") + ylim(08, 15)
 
-summary(mes <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(d, country=="ES"), weights = w4))
+summary(mes <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="ES"), weights = w4))
 esplot <- plot_model(mes, type = 'pred', terms = c("year"), title = "ES") + ylim(8, 15)
 
-summary(muk <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(d, country=="UK"), weights = w4))
+summary(muk <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="UK"), weights = w4))
 ukplot <- plot_model(muk, type = 'pred', terms = c("year"), title = "UK") + ylim(8, 15)
 
 ggarrange(frplot, deplot, itplot, esplot, ukplot, m1plot)
@@ -170,6 +173,34 @@ ggarrange(frplot, deplot, itplot, esplot, ukplot, m1plot)
 
 
 ```
+
+```{r}
+mall1 <- lm(tenure ~ year*sex + age + + imm + occ_class, data = filter(five), weights = w5)
+mall1plot <- plot_model(mall1, type = "pred", terms = c("year", "sex"))
+
+mfr1 <- lm(tenure ~ year*sex + age + + imm + occ_class, data = filter(five, country=="FR"), weights = w4)
+fr1plot <- plot_model(mfr1, type = "pred", terms = c("year", "sex"))
+
+mde1 <- lm(tenure ~ year*sex + age + + imm + occ_class, data = filter(five, country=="DE"), weights = w4)
+de1plot <- plot_model(mde1, type = "pred", terms = c("year", "sex"))
+
+mit1 <- lm(tenure ~ year*sex + age + + imm + occ_class, data = filter(five, country=="IT"), weights = w4)
+mit1plot <- plot_model(mit1, type = "pred", terms = c("year", "sex"))
+
+mes1 <- lm(tenure ~ year*sex + age + + imm + occ_class, data = filter(five, country=="ES"), weights = w4)
+mes1plot <- plot_model(mes1, type = "pred", terms = c("year", "sex"))
+
+muk1 <- lm(tenure ~ year*sex + age + + imm + occ_class, data = filter(five, country=="UK"), weights = w4)
+muk1plot <- plot_model(muk1, type = "pred", terms = c("year", "sex"))
+
+ggarrange(fr1plot, de1plot, mit1plot, mes1plot, muk1plot, mall1plot)
+
+
+
+```
+
+
+
 
 ### Interactions
 
