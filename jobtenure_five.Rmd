@@ -23,11 +23,13 @@ five <- readRDS("5cleaned.rds")
 ```
 
 
-# five Countries - UK, FR, DE, IT (includes the 4 Western European countries with the largest populations)
+# Five Countries - UK, FR, DE, IT, and ES 
+
+**Poland was not included because it only entered the sample in 2000**
 
 ## Average Tenure Over Time 
 
-I used both weights and multiplied them together - Post-stratification x Country In-Work population
+**Only in-work population weights are used.**
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -131,105 +133,100 @@ ggplot(occtable, aes(year,meantenure, group = occ_class, colour = occ_class)) +
 
 ## Models
 
+### Effect of Year on Tenure
+
 Time (year) variable is treated as a continuous variable.
 
 **Controls**
-Age, age squared, migrant dummy, country
+Age, age squared, migrant dummy, occupational classes
 
-Weights - post-stratification weights
+**Weights**
+Only used post-stratification weights
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 theme_set(theme_sjplot())
 
-#five <- fastDummies::dummy_columns(five, select_columns = "occ_class")
-
-# removes country dummies and includes workforce weight
-
-summary(m1 <- lm(tenure ~ year + age + sex + imm, data = five, weights = w5))
+m1 <- lm(tenure ~ year + age + sex + imm, data = five, weights = w5)
 m1plot <- plot_model(m1, type = 'pred', terms = c("year"), title = "All") + ylim(8, 15)
 
-# m1 <- loess(tenure ~ year + age + women, data = five, weights = w5, span = 0.75)
-# tibble(year = c(min(five$year):max(five$year)), age = mean(five$age), women = mean(five$women, na.rm = T)) %>% mutate(pred = predict(m1,.))
-# 
-# m1plot <- plot_model(m1, type = 'pred', terms = c("year"), title = "All") + ylim(8, 15)
+fr1 <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="FR"), weights = w4)
+fr1plot <- plot_model(fr1, type = 'pred', terms = c("year"), title = "FR") + ylim(7, 15)
 
-summary(mfr <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="FR"), weights = w4))
-frplot <- plot_model(mfr, type = 'pred', terms = c("year"), title = "FR") + ylim(8, 15)
+de1 <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="DE"), weights = w4)
+de1plot <- plot_model(de1, type = 'pred', terms = c("year"), title = "DE") + ylim(7, 15)
 
-summary(mde <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="DE"), weights = w4))
-deplot <- plot_model(mde, type = 'pred', terms = c("year"), title = "DE") + ylim(8, 15)
+it1 <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="IT"), weights = w4)
+it1plot <- plot_model(it1, type = 'pred', terms = c("year"), title = "IT") + ylim(7, 15)
 
-summary(mit <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="IT"), weights = w4))
-itplot <- plot_model(mit, type = 'pred', terms = c("year"), title = "IT") + ylim(08, 15)
+es1 <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="ES"), weights = w4)
+es1plot <- plot_model(es1, type = 'pred', terms = c("year"), title = "ES") + ylim(7, 15)
 
-summary(mes <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="ES"), weights = w4))
-esplot <- plot_model(mes, type = 'pred', terms = c("year"), title = "ES") + ylim(8, 15)
+uk1 <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="UK"), weights = w4)
+uk1plot <- plot_model(uk1, type = 'pred', terms = c("year"), title = "UK") + ylim(7, 15)
 
-summary(muk <- lm(tenure ~ year + age + sex + imm + occ_class, data = filter(five, country=="UK"), weights = w4))
-ukplot <- plot_model(muk, type = 'pred', terms = c("year"), title = "UK") + ylim(8, 15)
-
-ggarrange(frplot, deplot, itplot, esplot, ukplot, m1plot)
-
-
-
-```
-
-```{r}
-mall1 <- lm(tenure ~ year*sex + age + + imm + occ_class, data = filter(five), weights = w5)
-mall1plot <- plot_model(mall1, type = "pred", terms = c("year", "sex"))
-
-mfr1 <- lm(tenure ~ year*sex + age + + imm + occ_class, data = filter(five, country=="FR"), weights = w4)
-fr1plot <- plot_model(mfr1, type = "pred", terms = c("year", "sex"))
-
-mde1 <- lm(tenure ~ year*sex + age + + imm + occ_class, data = filter(five, country=="DE"), weights = w4)
-de1plot <- plot_model(mde1, type = "pred", terms = c("year", "sex"))
-
-mit1 <- lm(tenure ~ year*sex + age + + imm + occ_class, data = filter(five, country=="IT"), weights = w4)
-mit1plot <- plot_model(mit1, type = "pred", terms = c("year", "sex"))
-
-mes1 <- lm(tenure ~ year*sex + age + + imm + occ_class, data = filter(five, country=="ES"), weights = w4)
-mes1plot <- plot_model(mes1, type = "pred", terms = c("year", "sex"))
-
-muk1 <- lm(tenure ~ year*sex + age + + imm + occ_class, data = filter(five, country=="UK"), weights = w4)
-muk1plot <- plot_model(muk1, type = "pred", terms = c("year", "sex"))
-
-ggarrange(fr1plot, de1plot, mit1plot, mes1plot, muk1plot, mall1plot)
+ggarrange(fr1plot, de1plot, it1plot, es1plot, uk1plot, m1plot,
+          common.legend = TRUE)
 
 
 
 ```
 
 
+### Effect of Year on Tenure by Gender
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=12, fig.height=6}
+
+m2 <- lm(tenure ~ year*sex + age + imm + occ_class, data = filter(five), weights = w5)
+m2plot <- plot_model(m2, type = "pred", terms = c("year", "sex"), title = "All") + ylim(7, 14)
+
+fr2 <- lm(tenure ~ year*sex + age + imm + occ_class, data = filter(five, country=="FR"), weights = w4)
+fr2plot <- plot_model(fr2, type = "pred", terms = c("year", "sex"), title = "FR") + ylim(7, 14)
+
+de2 <- lm(tenure ~ year*sex + age + imm + occ_class, data = filter(five, country=="DE"), weights = w4)
+de2plot <- plot_model(de2, type = "pred", terms = c("year", "sex"), title = "DE") + ylim(7, 14)
+
+it2 <- lm(tenure ~ year*sex + age + imm + occ_class, data = filter(five, country=="IT"), weights = w4)
+it2plot <- plot_model(it2, type = "pred", terms = c("year", "sex"), title = "IT") + ylim(7, 14)
+
+es2 <- lm(tenure ~ year*sex + age + imm + occ_class, data = filter(five, country=="ES"), weights = w4)
+es2plot <- plot_model(es2, type = "pred", terms = c("year", "sex"), title = "ES") + ylim(7, 14)
+
+uk2 <- lm(tenure ~ year*sex + age + imm + occ_class, data = filter(five, country=="UK"), weights = w4)
+uk2plot <- plot_model(uk2, type = "pred", terms = c("year", "sex"), title = "UK") + ylim(7, 14)
+
+ggarrange(fr2plot, de2plot, it2plot, es2plot, uk2plot, m2plot,
+          common.legend = TRUE)
 
 
-### Interactions
 
-```{r}
+```
 
-summary(m2 <- lm(tenure ~ year*country + age + sex + imm + occ_class, data = five, weights = w4))
-plot_model(m2, type = "pred", terms = c("year", "country"))
 
-summary(m3 <- lm(tenure ~ year*sex*country + age + imm + occ_class, data = five, weights = w4))
-plot_model(m3, type = "pred", terms = c("year", "sex", "country"))
+### Effect of Year on Tenure by Occupational Class
 
-summary(m4 <- lm(tenure ~ year*occ_class + age + imm + occ_class, data = five, weights = w4))
-plot_model(m4, type = "pred", terms = c("year", "occ_class"))
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=12, fig.height=6}
 
-summary(m5 <- lm(tenure ~ year*occ_class*country + age + imm + occ_class, data = five, weights = w4))
-plot_model(m5, type = "pred", terms = c("year", "occ_class", "country"))
+m3 <- lm(tenure ~ year*occ_class + age + imm + sex, data = filter(five), weights = w5)
+m3plot <- plot_model(m3, type = "pred", terms = c("year", "occ_class"), title = "All") + ylim(6, 15)
 
+fr3 <- lm(tenure ~ year*occ_class + age + imm + sex, data = filter(five, country=="FR"), weights = w4)
+fr3plot <- plot_model(fr3, type = "pred", terms = c("year", "occ_class"), title = "FR") + ylim(6, 15)
+
+de3 <- lm(tenure ~ year*occ_class + age + imm + sex, data = filter(five, country=="DE"), weights = w4)
+de3plot <- plot_model(de3, type = "pred", terms = c("year", "occ_class"), title = "DE") + ylim(6, 15)
+
+it3 <- lm(tenure ~ year*occ_class + age + imm + sex, data = filter(five, country=="IT"), weights = w4)
+it3plot <- plot_model(it3, type = "pred", terms = c("year", "occ_class"), title = "IT") + ylim(6, 15)
+
+es3 <- lm(tenure ~ year*occ_class + age + imm + sex, data = filter(five, country=="ES"), weights = w4)
+es3plot <- plot_model(es3, type = "pred", terms = c("year", "occ_class"), title = "ES") + ylim(6, 15)
+
+uk3 <- lm(tenure ~ year*occ_class + age + imm + sex, data = filter(five, country=="UK"), weights = w4)
+uk3plot <- plot_model(uk3, type = "pred", terms = c("year", "occ_class"), title = "UK") + ylim(6, 15)
+
+ggarrange(fr3plot, de3plot, it3plot, es3plot, uk3plot, m3plot,
+          common.legend = TRUE)
 
 ```
 
-
-
-
-### Testing to see how well the model worked.
-
-```{r}
-five <-five %>% 
-  mutate(pred = predict(m1, newdata = .))
-
-five %>% select(tenure, pred) %>% pivot_longer(cols = everything()) %>% ggplot(aes(value, fill = name)) + geom_density(alpha = .5)
-
-```
