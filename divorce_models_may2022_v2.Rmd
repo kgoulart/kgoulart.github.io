@@ -21,15 +21,11 @@ d$scandinavia <- relevel(as.factor(d$scandinavia), ref = "Scandinavia")
 
 ```
 
-# Main Models
-
-## Effect of Long Mobility (5 categories) on Divorce
+# Variable Descriptions:
 
 DV = Divorce (binary)
 
 IV = Long Mobility (5 categories)
-
-Controls = Age, age squared, education (3 levels), eastern dummy, age at marriage, age at married squared
 
 1. Highly upwardly mobile (moves up 2 class levels)
 
@@ -40,6 +36,10 @@ Controls = Age, age squared, education (3 levels), eastern dummy, age at marriag
 4. Downwardly mobile (moves down 1 class level)
 
 5. Highly downwardly mobile (moves down 2 class levels)
+
+Controls = Age, age squared, education: Degree (ref.), age at marriage, age at married squared, country groups: Scandinavia (ref.)
+
+## Effect of Long Mobility (5 categories) on Divorce
 
 ```{r, echo=F, message=F, warning=F, fig.width=8, fig.height=5}
 
