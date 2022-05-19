@@ -1,0 +1,413 @@
+---
+title: "Divorce Models"
+output: html_document
+---
+
+```{r, echo=F, message=F, warning=F}
+library(tidyverse)
+library(haven)
+library(sjmisc)
+library(gridExtra)
+library(sjPlot)
+library(ggplot2)
+library(ggpubr)
+
+
+setwd("~/UPF PhD/Divorce/GGP/")
+d <- readRDS("wave1_cleaned.rds")
+
+d$long_mobility <- relevel(as.factor(d$long_mobility), ref = "immobile")
+d$scandinavia <- relevel(as.factor(d$scandinavia), ref = "Scandinavia")
+
+```
+
+# Main Models
+
+## Effect of Long Mobility (5 categories) on Divorce
+
+DV = Divorce (binary)
+
+IV = Long Mobility (5 categories)
+
+Controls = Age, age squared, education (3 levels), eastern dummy, age at marriage, age at married squared
+
+1. Highly upwardly mobile (moves up 2 class levels)
+
+2. Upwardly mobile (moves up 1 class level)
+
+3. Immobile (ref.)
+
+4. Downwardly mobile (moves down 1 class level)
+
+5. Highly downwardly mobile (moves down 2 class levels)
+
+```{r, echo=F, message=F, warning=F, fig.width=8, fig.height=5}
+
+m1 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + scandinavia + agemarr_p1 + I(agemarr_p1^2), family = "binomial", data = filter(d, asex == 1), weights = aweight)
+m2 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + scandinavia + agemarr_p1 + I(agemarr_p1^2), family = "binomial", data = filter(d, asex == 2), weights = aweight)
+
+plot1 <- plot_model(m1, title = "Men", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'scandinaviaEastern EU' = "Eastern Europe",
+    'scandinaviaWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    dur = "Duration"
+  ))
+
+plot2 <- plot_model(m2, title = "Women", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'scandinaviaEastern EU' = "Eastern Europe",
+    'scandinaviaWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    dur = "Duration"
+  ))
+ggarrange(plot1, plot2, ncol = 2)
+
+
+
+```
+
+## Effect of Long Mobility (5 categories) on Divorce by Country Groups (MEN)
+
+```{r echo=F, fig.width=8, message=FALSE, warning=FALSE, fig.width=12, fig.height=5}
+
+m3 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + agemarr_p1 + I(agemarr_p1^2) , family = "binomial", data = filter(d, asex==1 & scandinavia=="Western EU"), weights = aweight)
+
+plot3 <- plot_model(m3, title = "Western Europe", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'eastWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    dur = "Duration"
+  ))
+
+m4 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + agemarr_p1 + I(agemarr_p1^2), family = "binomial", data = filter(d, asex ==1 & scandinavia == "Eastern EU"), weights = aweight)
+
+plot4 <- plot_model(m4, title = "Eastern Europe", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'eastWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    relig = "Religiosity dummy",
+    dur = "Duration"
+  ))
+
+m5 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + agemarr_p1 + I(agemarr_p1^2), family = "binomial", data = filter(d, asex ==1 & scandinavia == "Scandinavia"), weights = aweight)
+
+plot5 <- plot_model(m5, title = "Scandinavia", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'eastWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    relig = "Religiosity dummy",
+    dur = "Duration"
+  ))
+
+
+ggarrange(plot3, plot4, plot5, ncol = 3)
+
+```
+
+## Effect of Long Mobility (5 categories) on Divorce by Country Groups (WOMEN)
+
+```{r echo=F, fig.width=8, message=FALSE, warning=FALSE, fig.width=12, fig.height=5}
+
+m6 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + agemarr_p1 + I(agemarr_p1^2), family = "binomial", data = filter(d, asex==2 & scandinavia=="Western EU"), weights = aweight)
+
+plot6 <- plot_model(m6, title = "Western Europe", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'eastWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    dur = "Duration"
+  ))
+
+m7 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + agemarr_p1 + I(agemarr_p1^2), family = "binomial", data = filter(d, asex ==2 & scandinavia == "Eastern EU"), weights = aweight)
+
+plot7 <- plot_model(m7, title = "Eastern Europe", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'eastWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    relig = "Religiosity dummy",
+    dur = "Duration"
+  ))
+
+m8 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + agemarr_p1 + I(agemarr_p1^2), family = "binomial", data = filter(d, asex ==2 & scandinavia == "Scandinavia"), weights = aweight)
+
+plot8 <- plot_model(m8, title = "Scandinavia", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'eastWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    relig = "Religiosity dummy",
+    dur = "Duration"
+  ))
+
+
+ggarrange(plot6, plot7, plot8, ncol = 3)
+
+```
+
+
+# Inclusion of the duration of partnership that ended in divorce.
+
+_The inclusion reduces the sample size_
+
+## Effect of Social Mobility (Long) on Divorce
+
+```{r, echo=F, message=F, warning=F, fig.width=8, fig.height=5}
+
+m1 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + scandinavia + agemarr_p1 + I(agemarr_p1^2) + dur, family = "binomial", data = filter(d, asex == 1), weights = aweight)
+m2 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + scandinavia + agemarr_p1 + I(agemarr_p1^2) + dur, family = "binomial", data = filter(d, asex == 2), weights = aweight)
+
+plot1 <- plot_model(m1, title = "Men", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'scandinaviaEastern EU' = "Eastern Europe",
+    'scandinaviaWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    dur = "Duration"
+  ))
+
+plot2 <- plot_model(m2, title = "Women", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'scandinaviaEastern EU' = "Eastern Europe",
+    'scandinaviaWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    dur = "Duration"
+  ))
+ggarrange(plot1, plot2, ncol = 2)
+
+
+
+```
+
+## Effect of Long Mobility (5 categories) on Divorce by Country Groups (MEN)
+
+```{r echo=F, fig.width=8, message=FALSE, warning=FALSE, fig.width=12, fig.height=5}
+
+m3 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + agemarr_p1 + I(agemarr_p1^2) + dur, family = "binomial", data = filter(d, asex==1 & scandinavia=="Western EU"), weights = aweight)
+
+plot3 <- plot_model(m3, title = "Western Europe", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'eastWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    dur = "Duration"
+  ))
+
+m4 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + agemarr_p1 + I(agemarr_p1^2) + dur, family = "binomial", data = filter(d, asex ==1 & scandinavia == "Eastern EU"), weights = aweight)
+
+plot4 <- plot_model(m4, title = "Eastern Europe", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'eastWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    relig = "Religiosity dummy",
+    dur = "Duration"
+  ))
+
+m5 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + agemarr_p1 + I(agemarr_p1^2) + dur, family = "binomial", data = filter(d, asex ==1 & scandinavia == "Scandinavia"), weights = aweight)
+
+plot5 <- plot_model(m5, title = "Scandinavia", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'eastWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    relig = "Religiosity dummy",
+    dur = "Duration"
+  ))
+
+
+ggarrange(plot3, plot4, plot5, ncol = 3)
+
+```
+
+## Effect of Long Mobility (5 categories) on Divorce by Country Groups (WOMEN)
+
+```{r echo=F, fig.width=8, message=FALSE, warning=FALSE, fig.width=12, fig.height=5}
+
+m6 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + agemarr_p1 + I(agemarr_p1^2) + dur, family = "binomial", data = filter(d, asex==2 & scandinavia=="Western EU"), weights = aweight)
+
+plot6 <- plot_model(m6, title = "Western Europe", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'eastWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    dur = "Duration"
+  ))
+
+m7 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + agemarr_p1 + I(agemarr_p1^2) + dur, family = "binomial", data = filter(d, asex ==2 & scandinavia == "Eastern EU"), weights = aweight)
+
+plot7 <- plot_model(m7, title = "Eastern Europe", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'eastWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    relig = "Religiosity dummy",
+    dur = "Duration"
+  ))
+
+m8 <- glm(divorce ~ long_mobility + aage + I(aage^2) + edu + agemarr_p1 + I(agemarr_p1^2) + dur, family = "binomial", data = filter(d, asex ==2 & scandinavia == "Scandinavia"), weights = aweight)
+
+plot8 <- plot_model(m8, title = "Scandinavia", show.values = TRUE, value.offset = .3) +
+  scale_y_continuous(limits = c(0.0001, 3)) +
+  scale_x_discrete(labels = list(
+    long_mobilitydownward = "Downwardly mobile",
+    'long_mobilityhighly downward' = "Highly downwardly mobile",
+    'long_mobilityhighly upward' = "Highly upwardly mobile",
+    long_mobilityupward = "Upwardly mobile",
+    aage = "Age",
+    'I(aage^2)' = "Age squared",
+    'edupost-secondary or tertiary' = "Edu: Post-seconary or Tertiary",
+    'eduupper secondary' = "Edu: Upper secondary",
+    'eastWestern EU' = "Western Europe",
+    agemarr_p1 = "Age at first marriage",
+    'I(agemarr_p1^2)' = "Age at first marraige squared",
+    relig = "Religiosity dummy",
+    dur = "Duration"
+  ))
+
+
+ggarrange(plot6, plot7, plot8, ncol = 3)
+
+```
